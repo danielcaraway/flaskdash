@@ -1,0 +1,1 @@
+To see dash dashboard, go to [url]/dash
