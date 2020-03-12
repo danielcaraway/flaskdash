@@ -1,4 +1,3 @@
-from flask import Flask
 from flask import Flask, render_template, url_for
 import dash
 import dash_core_components as dcc
