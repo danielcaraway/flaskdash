@@ -1,4 +1,5 @@
 venv
+history
 *.pyc
 .DS_Store
 .env
