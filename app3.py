@@ -1,3 +1,18 @@
+import plotly.graph_objects as go # or plotly.express as px
+
+# fig = go.Figure() 
+# or any Plotly Express function e.g. px.bar(...)
+# fig.add_trace( ... )
+# fig.update_layout( ... )
+
+# import plotly.express as px
+
+# df = px.data.gapminder().query("year==2007")
+# fig = px.choropleth(df, locations="iso_alpha",
+#                     color="lifeExp", # lifeExp is a column of gapminder
+#                     hover_name="country", # column to add to hover information
+#                     color_continuous_scale=px.colors.sequential.Plasma)
+
 from urllib.request import urlopen
 import json
 with urlopen('https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json') as response:
@@ -17,43 +32,17 @@ fig = px.choropleth(df, geojson=counties, locations='fips', color='unemp',
                           )
 fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
 
-import requests
-from bs4 import BeautifulSoup as bs
-url = "https://www.worldometers.info/coronavirus/"
-page = requests.get(url)
-soup= bs(page.content, "html.parser")
-
-content_block = soup.find(id="main_table_countries_today")
-# content_block
-
-def tableDataText(table):       
-    rows = []
-    trs = table.find_all('tr')
-    headerow = [td.get_text(strip=True) for td in trs[0].find_all('th')] # header row
-    if headerow: # if there is a header row include first
-        rows.append(headerow)
-        trs = trs[1:]
-    for tr in trs: # for every table row
-        rows.append([td.get_text(strip=True) for td in tr.find_all('td')]) # data row
-    return rows
-
-list_table = tableDataText(content_block)
-dftable = pd.DataFrame(list_table[1:], columns=list_table[0])
-
-
-
 from flask import Flask, render_template, url_for
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
-
 
 server = Flask(__name__)
 
 
 @server.route('/')
 def index():
-    return 'Hello Flask app ' + dftable.columns[0]
+    return 'Hello Flask app'
 
 app = dash.Dash(
     __name__,
