@@ -47,10 +47,6 @@ def tableDataText(table):
 list_table = tableDataText(content_block)
 dftable = pd.DataFrame(list_table[1:], columns=list_table[0])
 
-dftable.columns = ['Country,Other', 'TotalCases', 'NewCases', 'TotalDeaths', 'NewDeaths',
-       'TotalRecovered', 'ActiveCases', 'Serious,Critical', 'TotPerM',
-       'DeathsPerM', 'Reported1stcase']
-
 dftable.loc[dftable['Country,Other'] == 'USA','Country,Other'] = 'United States'
 dftable.loc[dftable['Country,Other'] == 'UK','Country,Other'] = 'United Kingdom'
 dftable.loc[dftable['Country,Other'] == 'S. Korea','Country,Other'] = 'Korea, South'
@@ -71,11 +67,7 @@ def get_country_code(country):
         return 'no code'
     
 dftable['CODE'] = dftable.apply(lambda x: get_country_code(x['Country,Other']), axis=1)
-dftable['TOTAL'] = pd.to_numeric(dftable['TotalCases'].str.replace(',', ''), errors='coerce')
-dftable['TOTAL_DEATHS'] = pd.to_numeric(dftable['TotalDeaths'].str.replace(',', ''), errors='coerce')
-dftable['TOTAL_PER_1M'] = pd.to_numeric(dftable['TotPerM'].str.replace(',', ''),errors='coerce')
-dftable['TOTAL_DEATHS_PER_1M'] = pd.to_numeric(dftable['DeathsPerM'].str.replace(',', ''),errors='coerce')
-
+dftable['TOTAL'] = dftable['TotalCases'].str.replace(',', '').astype(float)
 # dftable
 
 df = dftable.copy()
@@ -87,15 +79,29 @@ fig2 = go.Figure(data=go.Choropleth(
     text = df['Country,Other'],
     colorscale = 'Blues',
     autocolorscale=True,
-    reversescale=True,
+    reversescale=False,
     marker_line_color='darkgray',
     marker_line_width=0.5,
     colorbar_tickprefix = '',
     colorbar_title = 'Current Cases',
 ))
 
+# fig2 = go.Figure(data=go.Choropleth(
+#     # locations = df['CODE'],
+#     # locations = df['COUNTRY'],
+#     z = df['GDP (BILLIONS)'],
+#     text = df['COUNTRY'],
+#     colorscale = 'Blues',
+#     autocolorscale=False,
+#     reversescale=True,
+#     marker_line_color='darkgray',
+#     marker_line_width=0.5,
+#     colorbar_tickprefix = '$',
+#     colorbar_title = 'GDP<br>Billions US$',
+# ))
+
 fig2.update_layout(
-    title_text='Coronavirus: Total Cases',
+    title_text='Coronavirus Cases',
     geo=dict(
         showframe=False,
         showcoastlines=False,
@@ -113,102 +119,6 @@ fig2.update_layout(
 )
 
 
-fig3 = go.Figure(data=go.Choropleth(
-    locations = df['CODE'],
-    # locations = df['COUNTRY'],
-    z = df['TOTAL_DEATHS'],
-    text = df['Country,Other'],
-    colorscale = 'Blues',
-    autocolorscale=True,
-    reversescale=True,
-    marker_line_color='darkgray',
-    marker_line_width=0.5,
-    colorbar_tickprefix = '',
-    colorbar_title = 'Total Deaths',
-))
-
-fig3.update_layout(
-    title_text='Coronavirus: Total Deaths',
-    geo=dict(
-        showframe=False,
-        showcoastlines=False,
-        projection_type='equirectangular'
-    ),
-    annotations = [dict(
-        x=0.55,
-        y=0.1,
-        xref='paper',
-        yref='paper',
-        text='Source: <a href="https://www.worldometers.info/coronavirus/">\
-            Worldometer</a>',
-        showarrow = False
-    )]
-)
-
-
-fig4 = go.Figure(data=go.Choropleth(
-    locations = df['CODE'],
-    # locations = df['COUNTRY'],
-    z = df['TOTAL_PER_1M'],
-    text = df['Country,Other'],
-    colorscale = 'Blues',
-    autocolorscale=True,
-    reversescale=True,
-    marker_line_color='darkgray',
-    marker_line_width=0.5,
-    colorbar_tickprefix = '',
-    colorbar_title = 'Cases Per 1M',
-))
-
-fig4.update_layout(
-    title_text='Coronavirus: Total, Per 1M',
-    geo=dict(
-        showframe=False,
-        showcoastlines=False,
-        projection_type='equirectangular'
-    ),
-    annotations = [dict(
-        x=0.55,
-        y=0.1,
-        xref='paper',
-        yref='paper',
-        text='Source: <a href="https://www.worldometers.info/coronavirus/">\
-            Worldometer</a>',
-        showarrow = False
-    )]
-)
-
-fig5 = go.Figure(data=go.Choropleth(
-    locations = df['CODE'],
-    # locations = df['COUNTRY'],
-    z = df['TOTAL_DEATHS_PER_1M'],
-    text = df['Country,Other'],
-    colorscale = 'Blues',
-    autocolorscale=True,
-    reversescale=True,
-    marker_line_color='darkgray',
-    marker_line_width=0.5,
-    colorbar_tickprefix = '',
-    colorbar_title = 'Deaths Per 1M',
-))
-
-fig5.update_layout(
-    title_text='Coronavirus: Total Deaths, Per 1M',
-    geo=dict(
-        showframe=False,
-        showcoastlines=False,
-        projection_type='equirectangular'
-    ),
-    annotations = [dict(
-        x=0.55,
-        y=0.1,
-        xref='paper',
-        yref='paper',
-        text='Source: <a href="https://www.worldometers.info/coronavirus/">\
-            Worldometer</a>',
-        showarrow = False
-    )]
-)
 
 from flask import Flask, render_template, url_for
 import dash
@@ -232,18 +142,15 @@ app = dash.Dash(
 # app.layout = html.Div("My Dash app")
 
 app.layout = html.Div([
-    html.H2('Global Coronavirus'),
-    dcc.Graph(figure=fig2),
-    dcc.Graph(figure=fig3),
-    dcc.Graph(figure=fig4),
-    dcc.Graph(figure=fig5),
-    html.H2('PICK A COUNTRY -- Coming Soon'),
+    html.H2('PICK A CITY, ANY CITY!?'),
     dcc.Dropdown(
         id='dropdown',
-        options=[{'label': i, 'value': i} for i in ['USA', 'UK', 'China']],
-        value='USA'
+        options=[{'label': i, 'value': i} for i in ['LA', 'NYC', 'MTL']],
+        value='LA'
     ),
-    html.Div(id='display-value')
+    html.Div(id='display-value'),
+    dcc.Graph(figure=fig),
+    dcc.Graph(figure=fig2)
 ])
 
 @app.callback(dash.dependencies.Output('display-value', 'children'),
